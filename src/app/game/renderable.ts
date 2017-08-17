@@ -1,4 +1,5 @@
+import { Affine2D } from '../math2d';
+
 export interface Renderable {
-    id: number;
-    render(context: CanvasRenderingContext2D, matrix)
+    render(context: CanvasRenderingContext2D, transform: Affine2D)
 }
