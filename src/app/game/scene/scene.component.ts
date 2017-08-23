@@ -1,6 +1,5 @@
 import { Component, OnInit, ViewChild, HostListener, ElementRef, NgZone } from '@angular/core';
 import { Renderable } from '../renderable';
-import { Affine2D } from '../../math2d';
 
 @Component({
   selector: 'app-scene',
@@ -12,7 +11,6 @@ export class SceneComponent implements OnInit {
   @ViewChild("canvas") canvasRef: ElementRef;
   private canvas: HTMLCanvasElement;
   private context: CanvasRenderingContext2D;
-  private transform = new Affine2D();
 
   private renderableMap = new Set<Renderable>();
   private _needsRerendering = true;
@@ -22,8 +20,6 @@ export class SceneComponent implements OnInit {
   ngOnInit() {
     this.canvas = this.canvasRef.nativeElement;
     this.context = this.canvas.getContext("2d");
-    this.transform.axis.x = 1;
-    this.transform.axis.y = -1;
     start(this);
     this.resize();
     this.zone.runOutsideAngular(() => {
@@ -49,13 +45,12 @@ export class SceneComponent implements OnInit {
   public render() {
     if (this._needsRerendering) {
       this._needsRerendering = false;
-      this.transform.translation.x = this.canvas.width / 2;
-      this.transform.translation.y = this.canvas.height / 2;
-      this.transform.scale.x = 1;
-      this.transform.scale.y = 1;
+      this.context.setTransform(1, 0, 0, 1, 0, 0);
+      this.context.clearRect(0,0,this.canvas.width, this.canvas.height)
       this.renderableMap.forEach((v) => {
-        v.render(this.context, this.transform);
-      })
+        this.context.setTransform(1, 0, 0, -1, this.canvas.width / 2, this.canvas.height / 2)
+        v.render(this.context);
+      })   
     }
   }
 
