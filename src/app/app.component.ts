@@ -16,27 +16,62 @@ export class AppComponent {
   positionInc = 1;
 
   ngOnInit() {
-    setInterval(()=>{
-      this.angle = (this.angle+5)%360;
+
+    let update = (factor)=>{
+      this.angle = (this.angle+90*factor)%360;
       if(this.position<=-10)this.positionInc=1;
       else if(this.position>=10)this.positionInc=-1;
-      this.position+=this.positionInc/(Math.abs(this.position)<1?1:Math.abs(this.position))*0.5;
+      this.position+=10*factor*this.positionInc/(Math.abs(this.position)<1?1:Math.abs(this.position));
       this.scene.needsRerendering();
-    }, 100);
+    }
+
+    let loop = ()=>{
+      let time = Date.now();
+      let factor = (time-lastTime)/1000;
+      lastTime = time;
+      update(factor)
+      setTimeout(loop, 25);
+    }
+    let lastTime = Date.now();
+    loop();
 
     this.scene.addElement(<Renderable>{
       render: (context: CanvasRenderingContext2D) => {
+        context.fillStyle="#000000";
         context.beginPath();
         let i = -10;
         context.moveTo((i-3)*24,i*i*i);
         while(i<10){
-          i+=1/(Math.abs(i)<1?1:Math.abs(i))*0.5;
+          i+=1/(Math.abs(i)<1?1:Math.abs(i));
           context.lineTo((i-3)*24, i*i*i)
         }
         context.stroke();
+      }
+    });
+
+    this.scene.addElement(<Renderable>{
+      render: (context: CanvasRenderingContext2D) => {
+        let p = this.position;
+        let x = (p-3)*24;
+        let y_2= p*p;
+        let y = y_2*p;
         context.fillStyle="#FF0000";
-        context.translate((this.position-3)*24, this.position*this.position*this.position)
-        context.fillRect(-5, -5, 10, 10);
+        context.translate(x, y);
+        context.rotate(Math.PI/2+Math.atan(3/24*y_2));
+        context.fillRect(-5, -15, 10, 30);
+      }
+    });
+
+    this.scene.addElement(<Renderable>{
+      render: (context: CanvasRenderingContext2D) => {
+        let p = -this.position;
+        let x = (p-3)*24;
+        let y_2= p*p;
+        let y = y_2*p;
+        context.fillStyle="#775355";
+        context.translate(x, y);
+        context.rotate(Math.PI/2+Math.atan(3/24*y_2));
+        context.fillRect(-5, -15, 10, 30);
       }
     });
 
@@ -44,7 +79,7 @@ export class AppComponent {
       render: (context: CanvasRenderingContext2D) => {
         context.fillStyle="#0000FF";
         context.translate(50,30);
-        context.rotate(this.angle*Math.PI/180)
+        context.rotate(Math.sign(this.positionInc)*this.angle*Math.PI/180)
         let size=30;
         context.fillRect(-size/2, -size/2, size, size);
       }
